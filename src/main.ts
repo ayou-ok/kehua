@@ -1,11 +1,4 @@
 import './style.css'
-import a from './index'
+import kehua from './index'
 
-a('jojo')
-
-const app = document.querySelector<HTMLDivElement>('#app')!
-
-app.innerHTML = `
-  <h1>Hello Vite!</h1>
-  <a href="https://vitejs.dev/guide/features.html" target="_blank">Documentation</a>
-`
+kehua('body')
