@@ -1,5 +1,24 @@
 import debounce from 'lodash.debounce'
 
+let _canvas: ImageData | null = null
+
+/**
+ * 抗锯齿
+ */
+function aa (context: CanvasRenderingContext2D, w?: number, h?: number) {
+  const devicePixelRatio = window.devicePixelRatio || 2
+  const canvas = context.canvas
+  const width = w ?? canvas.width
+  const height = h ?? canvas.height
+
+  canvas.style.width = width + 'px'
+  canvas.style.height = height + 'px'
+  canvas.width = width * devicePixelRatio
+  canvas.height = height * devicePixelRatio
+
+  context.scale(devicePixelRatio, devicePixelRatio)
+}
+
 /**
  * 确保容器的position属性为非static值
  */
@@ -11,22 +30,12 @@ function ensurePostion (dom: HTMLElement) {
   }
 }
 
-function drawAxies (context: CanvasRenderingContext2D) {
-  context.save()
-  context.lineWidth = 0.5
-  context.strokeStyle = 'red'
+function saveCanvas (context: CanvasRenderingContext2D) {
+  _canvas = context.getImageData(0, 0, context.canvas.width, context.canvas.height)
+}
 
-  // x-axis
-  context.moveTo(0, 0)
-  context.lineTo(context.canvas.width, 0.5)
-
-  // y-axis
-  context.moveTo(0, 0)
-  context.lineTo(0.5, context.canvas.height)
-
-  context.stroke()
-
-  context.restore()
+function restoreCanvas (context: CanvasRenderingContext2D) {
+  _canvas && context.putImageData(_canvas, 0, 0)
 }
 
 function drawGrid (context: CanvasRenderingContext2D) {
@@ -34,16 +43,17 @@ function drawGrid (context: CanvasRenderingContext2D) {
 
   context.clearRect(0, 0, context.canvas.width, context.canvas.height)
 
-  context.lineWidth = 0.5
-  context.strokeStyle = 'grey'
+  context.lineWidth = 1
+  context.strokeStyle = 'rgba(0, 0, 0, 0.03)'
+  context.fillStyle = 'rgba(0, 0, 0, 0.2)'
 
-  const step = 30
+  const step = 40
 
   // horizontal lines
   for (let i = step; i < context.canvas.height; i += step) {
-    context.moveTo(0, i + 0.5)
-    context.strokeText(i.toString(), 0, i)
-    context.lineTo(context.canvas.width, i + 0.5)
+    context.moveTo(0, i)
+    context.fillText(i.toString(), 0, i)
+    context.lineTo(context.canvas.width, i)
   }
 
   context.textBaseline = 'top'
@@ -51,9 +61,9 @@ function drawGrid (context: CanvasRenderingContext2D) {
 
   // vertical lines
   for (let i = step; i < context.canvas.width; i += step) {
-    context.moveTo(i + 0.5, 0)
-    context.strokeText(i.toString(), i, 0)
-    context.lineTo(i + 0.5, context.canvas.height)
+    context.moveTo(i, 0)
+    context.fillText(i.toString(), i, 0)
+    context.lineTo(i, context.canvas.height)
   }
 
   context.stroke()
@@ -61,22 +71,43 @@ function drawGrid (context: CanvasRenderingContext2D) {
   context.restore()
 }
 
+function moveCrosshair (context: CanvasRenderingContext2D, e: MouseEvent) {
+  context.save()
+
+  context.beginPath()
+
+  context.moveTo(0, e.clientY)
+  context.lineTo(context.canvas.width, e.clientY)
+
+  context.moveTo(e.clientX, 0)
+  context.lineTo(e.clientX, context.canvas.height)
+
+  context.stroke()
+
+  context.restore()
+}
+
 function makeRuler (root: HTMLElement) {
-  const container = document.createElement('div')
   const style = root.getBoundingClientRect()
   const width = style.width
   const height = style.height
   const canvas = document.createElement('canvas')
   const context = canvas.getContext('2d')
 
-  canvas.width = width
-  canvas.height = height
+  context && aa(context, width, height)
 
+  const container = document.createElement('div')
   container.className = 'ruler'
 
   if (context) {
     // drawAxies(context)
     drawGrid(context)
+    saveCanvas(context)
+
+    root.addEventListener('mousemove', e => {
+      restoreCanvas(context)
+      moveCrosshair(context, e)
+    })
   }
 
   container.appendChild(canvas)
