@@ -1,3 +1,5 @@
+import debounce from 'lodash.debounce'
+
 /**
  * 确保容器的position属性为非static值
  */
@@ -9,54 +11,77 @@ function ensurePostion (dom: HTMLElement) {
   }
 }
 
-function makeHorizontalRuler (width: number) {
-  const ruler = document.createElement('div')
-  for (let i = 1; i < width; i += 5) {
-    const scale = document.createElement('i')
-    scale.style.cssText = `
-      position: absolute;
-      top: 0;
-      width: 1px;
-      height: 5px;
-      left: ${i}px;
-      background: red;
-      display: inline-block;
-    `
+function drawAxies (context: CanvasRenderingContext2D) {
+  context.save()
+  context.lineWidth = 0.5
+  context.strokeStyle = 'red'
 
-    ruler.appendChild(scale)
-  }
-  return ruler
+  // x-axis
+  context.moveTo(0, 0)
+  context.lineTo(context.canvas.width, 0.5)
+
+  // y-axis
+  context.moveTo(0, 0)
+  context.lineTo(0.5, context.canvas.height)
+
+  context.stroke()
+
+  context.restore()
 }
 
-function makeVerticalRuler (height: number) {
-  const ruler = document.createElement('div')
-  return ruler
+function drawGrid (context: CanvasRenderingContext2D) {
+  context.save()
+
+  context.clearRect(0, 0, context.canvas.width, context.canvas.height)
+
+  context.lineWidth = 0.5
+  context.strokeStyle = 'grey'
+
+  const step = 30
+
+  // horizontal lines
+  for (let i = step; i < context.canvas.height; i += step) {
+    context.moveTo(0, i + 0.5)
+    context.strokeText(i.toString(), 0, i)
+    context.lineTo(context.canvas.width, i + 0.5)
+  }
+
+  context.textBaseline = 'top'
+  context.textAlign = 'center'
+
+  // vertical lines
+  for (let i = step; i < context.canvas.width; i += step) {
+    context.moveTo(i + 0.5, 0)
+    context.strokeText(i.toString(), i, 0)
+    context.lineTo(i + 0.5, context.canvas.height)
+  }
+
+  context.stroke()
+
+  context.restore()
 }
 
 function makeRuler (root: HTMLElement) {
   const container = document.createElement('div')
   const style = root.getBoundingClientRect()
-  console.log(style)
   const width = style.width
   const height = style.height
-  const c = document.createElement('canvas')
-  c.width = width
-  c.height = height
+  const canvas = document.createElement('canvas')
+  const context = canvas.getContext('2d')
 
-  container.style.display = 'none'
+  canvas.width = width
+  canvas.height = height
+
   container.className = 'ruler'
 
-  // container.appendChild(makeHorizontalRuler(width))
-  // container.appendChild(makeVerticalRuler(height))
-  container.appendChild(c)
+  if (context) {
+    // drawAxies(context)
+    drawGrid(context)
+  }
+
+  container.appendChild(canvas)
 
   return container
-}
-
-function styleRule (rule: HTMLElement) {
-  rule.style.display = ''
-
-  rule.querySelector('horizontal')
 }
 
 function kehua (mixed: string | HTMLElement) {
@@ -75,11 +100,22 @@ function kehua (mixed: string | HTMLElement) {
 
   ensurePostion(el)
 
-  const ruler = makeRuler(el)
-
-  styleRule(ruler)
+  let ruler = makeRuler(el)
 
   el.appendChild(ruler)
+
+  const onResize = debounce(() => {
+    el?.removeChild(ruler)
+
+    if (el) {
+      ruler = makeRuler(el)
+      el?.appendChild(ruler)
+    }
+  }, 150)
+
+  window.onresize = onResize
+
+  return ruler
 }
 
 export default kehua

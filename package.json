@@ -11,5 +11,8 @@
     "typescript": "^4.5.4",
     "vite": "^2.9.9"
   },
-  "main": "src/index.ts"
+  "main": "src/index.ts",
+  "dependencies": {
+    "lodash.debounce": "^4.0.8"
+  }
 }
