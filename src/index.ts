@@ -59,27 +59,23 @@ function drawGrid (context: CanvasRenderingContext2D) {
   context.strokeStyle = 'rgba(0, 0, 0, 0.03)'
   context.fillStyle = 'rgba(0, 0, 0, 0.2)'
 
+  context.beginPath()
+
   const step = 40
 
-  // horizontal lines
+  // 横线簇
   for (let i = step; i < context.canvas.height; i += step) {
     context.moveTo(0, i)
-    context.fillText(i.toString(), 0, i)
     context.lineTo(context.canvas.width, i)
   }
 
-  context.textBaseline = 'top'
-  context.textAlign = 'center'
-
-  // vertical lines
+  // 竖线簇
   for (let i = step; i < context.canvas.width; i += step) {
     context.moveTo(i, 0)
-    context.fillText(i.toString(), i, 0)
     context.lineTo(i, context.canvas.height)
   }
 
   context.stroke()
-
   context.restore()
 }
 
@@ -91,20 +87,47 @@ function drawGrid (context: CanvasRenderingContext2D) {
 function drawCrosshair (context: CanvasRenderingContext2D, e: MouseEvent) {
   context.save()
 
-  context.beginPath()
-
   /**
    * 横线
    */
+  context.beginPath()
   context.moveTo(0, e.clientY)
   context.lineTo(context.canvas.width, e.clientY)
+  context.stroke()
+
+  /**
+   * 横线标签
+   */
+  const measure = context.measureText(e.clientY.toString())
+  const padding = 4
+  const width = measure.width + padding
+  const height = measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent + padding
+
+  context.beginPath()
+  context.rect(0, e.clientY - height / 2, width, height)
+  context.fill()
+  context.save()
+  context.fillStyle = 'white'
+  context.textBaseline = 'middle'
+  context.fillText(e.clientY.toString(), 0 + padding / 2, e.clientY)
+  context.stroke()
+  context.restore()
 
   /**
    * 竖线
    */
+  context.beginPath()
   context.moveTo(e.clientX, 0)
   context.lineTo(e.clientX, context.canvas.height)
+  context.stroke()
 
+  /**
+   * 竖线标签
+   */
+  context.beginPath()
+  context.textBaseline = 'top'
+  context.textAlign = 'center'
+  context.fillText(e.clientX.toString(), e.clientX, 0)
   context.stroke()
 
   context.restore()
@@ -121,25 +144,26 @@ function makeRuler (root: HTMLElement) {
   const canvas = document.createElement('canvas')
   const context = canvas.getContext('2d')
 
-  context && aa(context, width, height)
-
   const container = document.createElement('div')
   container.className = 'ruler'
 
   if (context) {
-    // drawAxies(context)
-    drawGrid(context)
-    saveCanvas(context)
+    aa(context, width, height)
 
-    root.addEventListener('mousemove', e => {
-      requestAnimationFrame(() => {
-        restoreCanvas(context)
-        drawCrosshair(context, e)
+    if (context) {
+      drawGrid(context)
+      saveCanvas(context)
+
+      root.addEventListener('mousemove', e => {
+        requestAnimationFrame(() => {
+          restoreCanvas(context)
+          drawCrosshair(context, e)
+        })
       })
-    })
-  }
+    }
 
-  container.appendChild(canvas)
+    container.appendChild(canvas)
+  }
 
   return container
 }
