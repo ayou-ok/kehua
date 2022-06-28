@@ -30,14 +30,26 @@ function ensurePostion (dom: HTMLElement) {
   }
 }
 
+/**
+ * 保存上一帧动画
+ * @param context
+ */
 function saveCanvas (context: CanvasRenderingContext2D) {
   _canvas = context.getImageData(0, 0, context.canvas.width, context.canvas.height)
 }
 
+/**
+ * 恢复上一帧动画
+ * @param context 
+ */
 function restoreCanvas (context: CanvasRenderingContext2D) {
   _canvas && context.putImageData(_canvas, 0, 0)
 }
 
+/**
+ * 网格绘制
+ * @param context 
+ */
 function drawGrid (context: CanvasRenderingContext2D) {
   context.save()
 
@@ -71,14 +83,25 @@ function drawGrid (context: CanvasRenderingContext2D) {
   context.restore()
 }
 
-function moveCrosshair (context: CanvasRenderingContext2D, e: MouseEvent) {
+/**
+ * 十字线动态绘制
+ * @param context 
+ * @param e 
+ */
+function drawCrosshair (context: CanvasRenderingContext2D, e: MouseEvent) {
   context.save()
 
   context.beginPath()
 
+  /**
+   * 横线
+   */
   context.moveTo(0, e.clientY)
   context.lineTo(context.canvas.width, e.clientY)
 
+  /**
+   * 竖线
+   */
   context.moveTo(e.clientX, 0)
   context.lineTo(e.clientX, context.canvas.height)
 
@@ -87,6 +110,10 @@ function moveCrosshair (context: CanvasRenderingContext2D, e: MouseEvent) {
   context.restore()
 }
 
+/**
+ * 
+ * @param root 
+ */
 function makeRuler (root: HTMLElement) {
   const style = root.getBoundingClientRect()
   const width = style.width
@@ -105,8 +132,10 @@ function makeRuler (root: HTMLElement) {
     saveCanvas(context)
 
     root.addEventListener('mousemove', e => {
-      restoreCanvas(context)
-      moveCrosshair(context, e)
+      requestAnimationFrame(() => {
+        restoreCanvas(context)
+        drawCrosshair(context, e)
+      })
     })
   }
 
