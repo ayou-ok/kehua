@@ -2,28 +2,35 @@
  * @Author: 阿佑[ayooooo@petalmail.com] 
  * @Date: 2022-06-30 18:07:00 
  * @Last Modified by: 阿佑
- * @Last Modified time: 2022-06-30 18:10:07
+ * @Last Modified time: 2022-07-04 18:53:14
+ * 
+ * x轴aka主轴aka时间轴aka横坐标轴
  */
 
 type Range = [from: number, to: number]
 
-type OverflowMode = 'left' | 'right' | 'none'
+/**
+ * left 向左溢出
+ * right 向右溢出
+ * shrink 收缩（会突破设置的bandWidth）
+ */
+type OverflowMode = 'left' | 'right' | 'shrink'
 
 type Domain = (string | number)[]
 
 export type MainAxisOptions = Partial<{
-  overflowModel: OverflowMode;
-  range: Range;
-  domain: Domain;
-  bandWidth: number;
-  padding: number;
+  overflow: OverflowMode; // 溢出模式
+  range: Range; // x轴的值域(轴上的显示范围)
+  domain: Domain; // 一个domain对应x轴上一个节点
+  bandWidth: number; // 一个单位图形显示所需的宽度
+  padding: number; // 相邻图形之间的间距（左右两边的总值）
 }>
 
 function mainAxis (options: MainAxisOptions = {}) {
   const FROM = 0
   const TO = 1
 
-  let overflowMode: OverflowMode = options.overflowModel ?? 'left'
+  let overflow: OverflowMode = options.overflow ?? 'left'
   let _bandWidth = options.bandWidth ?? 1
   let _range: Range = options.range ?? [0, 1]
   let _domain: Domain = options.domain ?? [0, 1]
