@@ -1796,6 +1796,10 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
+"lunzi@https://github.com/ayou-ok/lunzi":
+  version "1.0.0"
+  resolved "https://github.com/ayou-ok/lunzi#2a38949639c23fa5d2d5157a86d9e9fe8708b2de"
+
 make-dir@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/make-dir/-/make-dir-3.1.0.tgz#415e967046b3a7f1d185277d84aa58203726a13f"

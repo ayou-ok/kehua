@@ -1,4 +1,7 @@
 import debounce from 'lodash.debounce'
+import log from 'lunzi/src/log'
+
+const print = log.create()
 
 let _canvas: ImageData | null = null
 
@@ -170,6 +173,8 @@ function makeRuler (root: HTMLElement) {
 
 function kehua (mixed: string | HTMLElement) {
   let el: HTMLElement | null = null
+
+  print('jojo')
 
   if ('string' === typeof mixed) {
     const node = document.querySelector(mixed)

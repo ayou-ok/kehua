@@ -18,6 +18,7 @@
   },
   "main": "src/index.ts",
   "dependencies": {
-    "lodash.debounce": "^4.0.8"
+    "lodash.debounce": "^4.0.8",
+    "lunzi": "https://github.com/ayou-ok/lunzi"
   }
 }
