@@ -1,5 +1,9 @@
-describe('jojo', () => {
-  test('joo', () => {
+describe('主轴', () => {
+  test('默认区域为[0, 1]', () => {
     expect(1).toBe(1)
+  })
+
+  test('默认值域为[0, 1]', () => {
+
   })
 })
