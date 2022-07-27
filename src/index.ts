@@ -3,7 +3,7 @@ import log from 'lunzi/src/log'
 
 const print = log.create()
 
-let _canvas: ImageData | null = null
+let _canvas: HTMLImageElement | null = null
 
 /**
  * 抗锯齿
@@ -38,20 +38,26 @@ function ensurePostion (dom: HTMLElement) {
  * @param context
  */
 function saveCanvas (context: CanvasRenderingContext2D) {
-  _canvas = context.getImageData(0, 0, context.canvas.width, context.canvas.height)
+  const img = new Image(parseInt(context.canvas.style.width), parseInt(context.canvas.style.height))
+  console.log(img.height, img.width)
+  img.src = context.canvas.toDataURL('image/png', 1)
+  _canvas = img
 }
 
 /**
  * 恢复上一帧动画
- * @param context 
+ * @param context
  */
 function restoreCanvas (context: CanvasRenderingContext2D) {
-  _canvas && context.putImageData(_canvas, 0, 0)
+  if (_canvas) {
+    context.clearRect(0, 0, _canvas.width, _canvas.height)
+    context.drawImage(_canvas, 0, 0, _canvas.width, _canvas.height)
+  }
 }
 
 /**
  * 网格绘制
- * @param context 
+ * @param context
  */
 function drawGrid (context: CanvasRenderingContext2D) {
   context.save()
@@ -84,8 +90,8 @@ function drawGrid (context: CanvasRenderingContext2D) {
 
 /**
  * 十字线动态绘制
- * @param context 
- * @param e 
+ * @param context
+ * @param e
  */
 function drawCrosshair (context: CanvasRenderingContext2D, e: MouseEvent) {
   context.save()
@@ -136,9 +142,18 @@ function drawCrosshair (context: CanvasRenderingContext2D, e: MouseEvent) {
   context.restore()
 }
 
+function drawBubbles (context: CanvasRenderingContext2D) {
+  const { width, height } = context.canvas
+  for (let i = 0; i < 2000; i++) {
+    context.beginPath()
+    context.arc(Math.random() * width, Math.random() * height, 10, 0, 360)
+    context.stroke()
+  }
+}
+
 /**
- * 
- * @param root 
+ *
+ * @param root
  */
 function makeRuler (root: HTMLElement) {
   const style = root.getBoundingClientRect()
@@ -157,11 +172,23 @@ function makeRuler (root: HTMLElement) {
       drawGrid(context)
       saveCanvas(context)
 
+      const draw = (e) => {
+        restoreCanvas(context)
+        // drawCrosshair(context, e)
+        // drawBubbles(context)
+      }
+
       root.addEventListener('mousemove', e => {
         requestAnimationFrame(() => {
           restoreCanvas(context)
           drawCrosshair(context, e)
+          // drawBubbles(context)
         })
+      })
+
+
+      root.addEventListener('touchmove', () => {
+        requestAnimationFrame(draw)
       })
     }
 
@@ -193,7 +220,7 @@ function kehua (mixed: string | HTMLElement) {
 
   el.appendChild(ruler)
 
-  const onResize = debounce(() => {
+  window.onresize = debounce(() => {
     el?.removeChild(ruler)
 
     if (el) {
@@ -201,8 +228,6 @@ function kehua (mixed: string | HTMLElement) {
       el?.appendChild(ruler)
     }
   }, 150)
-
-  window.onresize = onResize
 
   return ruler
 }
